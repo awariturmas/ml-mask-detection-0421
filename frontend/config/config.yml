@@ -1,0 +1,2 @@
+api:
+  prediction_url: http://fastapi/predict/
