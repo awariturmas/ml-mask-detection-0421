@@ -14,7 +14,7 @@ $ sudo docker-compose -f api/docker-compose.yml build
 # Login na GCP Account
 $ gcloud auth login --no-launch-browser
 # Configura projeto principal
-$ gcloud config set project awari-mask-cloudrun
+$ gcloud config set project <PROJECT_ID>
 # Permite o acesso ao Google Container Registry
 $ gcloud auth configure-docker
 ```
