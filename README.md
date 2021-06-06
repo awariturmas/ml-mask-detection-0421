@@ -22,7 +22,7 @@ $ gcloud auth configure-docker
 3. Cria a tag do container no GCR
 ```bash
 # Configura a tag dentro do container registry
-$ sudo docker tag api_fastapi gcr.io/<PROJECT_ID>/fastapi
+$ sudo docker tag api_app gcr.io/<PROJECT_ID>/fastapi
 # Faz o push da imagem no GCR
 $ sudo docker push gcr.io/<PROJECT_ID>/fastapi
 ```
