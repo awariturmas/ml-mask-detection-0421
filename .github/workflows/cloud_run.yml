@@ -1,0 +1,52 @@
+on:
+  push:
+    branches:
+    - main
+
+name: Build and Deploy to Cloud Run
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT }}
+  API_SERVICE: fastapi
+  FRONT_SERVICE: frontend
+  REGION: us-east1
+
+jobs:
+  build-and-deployment:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    
+    - name: Test Artifacts
+      run: |-
+        python test_deploy.py
+
+    - name: Setup Cloud SDK
+      uses: google-github-actions/setup-gcloud@v0.2.0
+      with:
+        project_id: ${{ env.PROJECT_ID }}
+        service_account_key: ${{ secrets.GCP_KEY }}
+
+    - name: Authorize Docker push
+      run: gcloud auth configure-docker
+
+    - name: Build, Push and Deploy FastAPI Container
+      run: |-
+        docker build -t gcr.io/${{ env.PROJECT_ID }}/${{ env.API_SERVICE }}:${{ github.sha }} -f api/app/Dockerfile api/app
+        docker push gcr.io/${{ env.PROJECT_ID }}/${{ env.API_SERVICE }}:${{ github.sha }}
+        gcloud run deploy ${{ env.API_SERVICE }} \
+          --region ${{ env.REGION }} \
+          --image gcr.io/${{ env.PROJECT_ID }}/${{ env.API_SERVICE }}:${{ github.sha }} \
+          --platform "managed" \
+          --allow-unauthenticated \
+          --memory '2G'
+    
+    - name: Build, Push and Deploy Frontend Container
+      run: |-
+        docker build -t gcr.io/${{ env.PROJECT_ID }}/${{ env.FRONT_SERVICE }}:${{ github.sha }} -f api/frontend/Dockerfile api/frontend
+        docker push gcr.io/${{ env.PROJECT_ID }}/${{ env.FRONT_SERVICE }}:${{ github.sha }}
+        gcloud run deploy ${{ env.FRONT_SERVICE }} \
+          --region ${{ env.REGION }} \
+          --image gcr.io/${{ env.PROJECT_ID }}/${{ env.FRONT_SERVICE }}:${{ github.sha }} \
+          --platform "managed" \
+          --allow-unauthenticated
